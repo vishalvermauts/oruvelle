@@ -1,3 +1,5 @@
 auth.json
 login.log
 node_modules/
+session.json
+rust/target/

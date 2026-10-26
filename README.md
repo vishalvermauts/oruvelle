@@ -36,7 +36,8 @@ notify.js ──► alexa.js   (used by IDE hooks, no MCP needed)
 
 ## Requirements
 
-- Node.js 20.11 or newer (the code uses `import.meta.dirname`)
+- Node.js 20.11 or newer (for login and session export)
+- Rust and Cargo, to build the low-memory server (about 5 MB while running)
 - An Amazon account with at least one Echo device
 - Smart lights added through the Alexa app (optional, for light tools)
 
@@ -46,17 +47,26 @@ notify.js ──► alexa.js   (used by IDE hooks, no MCP needed)
 git clone https://github.com/<you>/echo-ide-mcp.git
 cd echo-ide-mcp
 npm install
+cd rust && cargo build --release && cd ..
 ```
 
-### 1. Log in once
+### 1. Log in and export the session
 
-Start any tool call (or run `node notify.js "" green "Lamp 1"`, which only sets a colour). The first call opens the login proxy. Visit **http://localhost:3456/**, sign in with your Amazon account, and wait for `LOGGED IN, saved auth.json` in the terminal. Do not share `auth.json`.
+```bash
+node session.js
+```
+
+The first run opens the login proxy. Visit **http://localhost:3456/**, sign in with your Amazon account, and wait for `LOGGED IN, saved auth.json`. This writes `auth.json` (your login, never share it) and `session.json` (the cookie, device list, lights and routines the Rust server uses). Both are gitignored.
 
 If your account is not on amazon.com, set the region:
 
 ```bash
-AMAZON_PAGE=amazon.co.uk node notify.js "hello"
+AMAZON_PAGE=amazon.co.uk node session.js
 ```
+
+The library also detects the region from your account, so if it reports `amazon.com.au`, the session uses that automatically.
+
+Re-run `node session.js` when the Rust server reports `session expired`. This happens roughly every two weeks.
 
 ### 2. Choose your Echo
 
@@ -68,14 +78,14 @@ ALEXA_DEVICE="Kitchen Echo" node notify.js "hello"
 
 ### 3. Connect your IDE
 
-Add this server to your MCP client's configuration file. Cursor, VS Code and other MCP clients use the same `command` and `args`:
+Add this server to your MCP client's configuration file. Cursor, VS Code and other MCP clients use the same `command` and `args`. The Rust binary needs no arguments:
 
 ```json
 {
   "mcpServers": {
     "alexa": {
-      "command": "node",
-      "args": ["C:/path/to/echo-ide-mcp/server.js"]
+      "command": "C:/path/to/echo-ide-mcp/rust/target/release/oruvelle.exe",
+      "args": []
     }
   }
 }
@@ -128,7 +138,9 @@ Arguments are: message, colour (default `green`), light or room (default `Lamp 1
 
 | File | Purpose |
 |---|---|
-| `server.js` | MCP server and tool definitions |
+| `rust/` | Low-memory MCP server and `notify` command (the recommended build) |
+| `session.js` | Logs in and exports `session.json` for the Rust server |
+| `server.js` | Original Node MCP server (uses about 60 MB; kept for reference) |
 | `alexa.js` | Shared login, device lookup, light, speech and routine helpers |
 | `notify.js` | Command-line wrapper for hooks and scripts |
 | `.mcp.json` | Example MCP config for this folder |
@@ -153,6 +165,8 @@ Arguments are: message, colour (default `green`), light or room (default `Lamp 1
 
 | Feature | Status |
 |---|---|
+| Rust server: MCP tools (list lights, list routines) | Tested, about 5 MB RAM |
+| Rust server: colour change and speech via `notify` | Tested |
 | Login and session reuse | Tested |
 | List Echo devices and lights | Tested |
 | Speak and volume | Tested |

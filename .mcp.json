@@ -1,1 +1,1 @@
-{"mcpServers":{"alexa":{"command":"node","args":["server.js"]}}}
+{"mcpServers":{"alexa":{"command":"C:/Alexa/rust/target/release/oruvelle.exe"}}}
