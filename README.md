@@ -140,7 +140,6 @@ Arguments are: message, colour (default `green`), light or room (default `Lamp 1
 |---|---|
 | `rust/` | Low-memory MCP server and `notify` command (the recommended build) |
 | `session.js` | Logs in and exports `session.json` for the Rust server |
-| `server.js` | Original Node MCP server (uses about 60 MB; kept for reference) |
 | `alexa.js` | Shared login, device lookup, light, speech and routine helpers |
 | `notify.js` | Command-line wrapper for hooks and scripts |
 | `.mcp.json` | Example MCP config for this folder |
